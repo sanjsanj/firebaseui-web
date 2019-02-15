@@ -1,16 +1,10 @@
 import React, { Component } from "react";
-import "./App.css";
-
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import firebase from "firebase";
 
-// Configure Firebase.
-const config = {
-  apiKey: "AIzaSyBgKK4j2ZyI4ukxJUbXybX0XR-WqIYe-vc",
-  authDomain: "gatsby-firebase-b23a5.firebaseapp.com",
-  // ...
-};
-firebase.initializeApp(config);
+import "./App.css";
+import "./firebase";
+import { mergeUser } from "./firebase";
 
 class SignInScreen extends React.Component {
   // The component's Local state.
@@ -38,10 +32,15 @@ class SignInScreen extends React.Component {
 
   // Listen to the Firebase Auth state and set the local state.
   componentDidMount() {
-    this.unregisterAuthObserver = firebase.auth().onAuthStateChanged(user => {
-      console.log(user);
-      this.setState({ isSignedIn: !!user });
-    });
+    this.unregisterAuthObserver = firebase
+      .auth()
+      .onAuthStateChanged(async user => {
+        if (!user) return;
+
+        console.log(user);
+        mergeUser(user);
+        this.setState({ isSignedIn: !!user });
+      });
   }
 
   // Make sure we un-register Firebase observers when the component unmounts.
@@ -69,7 +68,11 @@ class SignInScreen extends React.Component {
           Welcome {firebase.auth().currentUser.displayName}! You are now
           signed-in!
         </p>
+
         <button onClick={() => firebase.auth().signOut()}>Sign-out</button>
+
+        <h2>Save random number</h2>
+        <button>Save to account</button>
       </div>
     );
   }
