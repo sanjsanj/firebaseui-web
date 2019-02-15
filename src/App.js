@@ -4,12 +4,15 @@ import firebase from "firebase";
 
 import "./App.css";
 import "./firebase";
-import { mergeUser } from "./firebase";
+import { mergeUser, addValueToUser, getRandNumber } from "./firebase";
 
 class SignInScreen extends React.Component {
+  getRandNumber = getRandNumber.bind(this);
+
   // The component's Local state.
   state = {
     isSignedIn: false, // Local signed-in state.
+    rand: 0,
   };
 
   // Configure FirebaseUI.
@@ -39,7 +42,12 @@ class SignInScreen extends React.Component {
 
         console.log(user);
         mergeUser(user);
-        this.setState({ isSignedIn: !!user });
+
+        this.setState({
+          isSignedIn: !!user,
+        });
+
+        this.getRandNumber(user.uid);
       });
   }
 
@@ -72,7 +80,14 @@ class SignInScreen extends React.Component {
         <button onClick={() => firebase.auth().signOut()}>Sign-out</button>
 
         <h2>Save random number</h2>
-        <button>Save to account</button>
+        <button
+          onClick={() =>
+            addValueToUser(firebase.auth().currentUser.uid, Math.random())
+          }
+        >
+          Save!
+        </button>
+        <p>Saved number is {this.state.rand}</p>
       </div>
     );
   }

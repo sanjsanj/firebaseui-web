@@ -7,10 +7,22 @@ const config = {
 };
 
 firebase.initializeApp(config);
+const db = firebase.firestore();
 
-export function mergeUser(user) {
-  const db = firebase.firestore();
+export function mergeUser({ uid, displayName, email, photoURL }) {
   db.collection("users")
-    .doc(user.displayName)
-    .set({ uid: user.uid }, { merge: true });
+    .doc(uid)
+    .set({ uid, displayName, email, photoURL }, { merge: true });
+}
+
+export function addValueToUser(uid, value) {
+  db.collection("users")
+    .doc(uid)
+    .set({ rand: value }, { merge: true });
+}
+
+export async function getRandNumber(uid) {
+  db.collection("users")
+    .doc(uid)
+    .onSnapshot(doc => this.setState({ rand: doc.data().rand }));
 }
