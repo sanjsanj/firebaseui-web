@@ -1,13 +1,13 @@
-import React, { Component } from "react";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-import firebase from "firebase";
+import React, { Component } from "react";
+import { auth } from "firebase";
 
-import "./App.css";
-import "./firebase";
 import { mergeUser, addValueToUser, getRandNumber } from "./firebase";
+import "./firebase";
+import "./App.css";
 
 class SignInScreen extends React.Component {
-  getRandNumber = getRandNumber.bind(this);
+  // getRandNumber = getRandNumber.bind(this);
 
   // The component's Local state.
   state = {
@@ -21,11 +21,11 @@ class SignInScreen extends React.Component {
     signInFlow: "popup",
     // We will display Google and Facebook as auth providers.
     signInOptions: [
-      firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-      firebase.auth.TwitterAuthProvider.PROVIDER_ID,
-      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-      firebase.auth.EmailAuthProvider.PROVIDER_ID,
-      firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+      auth.FacebookAuthProvider.PROVIDER_ID,
+      auth.TwitterAuthProvider.PROVIDER_ID,
+      auth.GoogleAuthProvider.PROVIDER_ID,
+      auth.EmailAuthProvider.PROVIDER_ID,
+      auth.PhoneAuthProvider.PROVIDER_ID,
     ],
     callbacks: {
       // Avoid redirects after sign-in.
@@ -35,20 +35,18 @@ class SignInScreen extends React.Component {
 
   // Listen to the Firebase Auth state and set the local state.
   componentDidMount() {
-    this.unregisterAuthObserver = firebase
-      .auth()
-      .onAuthStateChanged(async user => {
-        if (!user) return;
+    this.unregisterAuthObserver = auth().onAuthStateChanged(async user => {
+      if (!user) return;
 
-        console.log(user);
-        mergeUser(user);
+      console.log(user);
+      mergeUser(user);
 
-        this.setState({
-          isSignedIn: !!user,
-        });
-
-        this.getRandNumber(user.uid);
+      this.setState({
+        isSignedIn: !!user,
       });
+
+      getRandNumber(user.uid, this.setState.bind(this));
+    });
   }
 
   // Make sure we un-register Firebase observers when the component unmounts.
@@ -62,28 +60,20 @@ class SignInScreen extends React.Component {
         <div>
           <h1>My App</h1>
           <p>Please sign-in:</p>
-          <StyledFirebaseAuth
-            uiConfig={this.uiConfig}
-            firebaseAuth={firebase.auth()}
-          />
+          <StyledFirebaseAuth uiConfig={this.uiConfig} firebaseAuth={auth()} />
         </div>
       );
     }
     return (
       <div>
         <h1>My App</h1>
-        <p>
-          Welcome {firebase.auth().currentUser.displayName}! You are now
-          signed-in!
-        </p>
+        <p>Welcome {auth().currentUser.displayName}! You are now signed-in!</p>
 
-        <button onClick={() => firebase.auth().signOut()}>Sign-out</button>
+        <button onClick={() => auth().signOut()}>Sign-out</button>
 
         <h2>Save random number</h2>
         <button
-          onClick={() =>
-            addValueToUser(firebase.auth().currentUser.uid, Math.random())
-          }
+          onClick={() => addValueToUser(auth().currentUser.uid, Math.random())}
         >
           Save!
         </button>
