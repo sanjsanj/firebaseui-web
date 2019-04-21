@@ -1,17 +1,19 @@
+import React from "react";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-import React, { Component } from "react";
 import { auth } from "firebase";
 
 import { mergeUser, addValueToUser, getRandNumber } from "./firebase";
 import "./firebase";
-import "./App.css";
 
-class SignInScreen extends React.Component {
+class App extends React.Component {
   // getRandNumber = getRandNumber.bind(this);
 
   // The component's Local state.
   state = {
-    isSignedIn: false, // Local signed-in state.
+    responseToPost: "",
+    isSignedIn: false,
+    response: "",
+    post: "",
     rand: 0,
   };
 
@@ -47,12 +49,36 @@ class SignInScreen extends React.Component {
 
       getRandNumber(user.uid, this.setState.bind(this));
     });
+
+    this.callApi()
+      .then(res => this.setState({ response: res.express }))
+      .catch(err => console.log(err));
   }
 
   // Make sure we un-register Firebase observers when the component unmounts.
   componentWillUnmount() {
     this.unregisterAuthObserver();
   }
+
+  callApi = async () => {
+    const response = await fetch("/api/hello");
+    const body = await response.json();
+    if (response.status !== 200) throw Error(body.message);
+    return body;
+  };
+
+  handleSubmit = async e => {
+    e.preventDefault();
+    const response = await fetch("/api/world", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ post: this.state.post }),
+    });
+    const body = await response.text();
+    this.setState({ responseToPost: body });
+  };
 
   render() {
     if (!this.state.isSignedIn) {
@@ -78,18 +104,22 @@ class SignInScreen extends React.Component {
           Save!
         </button>
         <p>Saved number is {this.state.rand}</p>
-      </div>
-    );
-  }
-}
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <SignInScreen />
-        </header>
+        <hr />
+
+        <p>{this.state.response}</p>
+        <form onSubmit={this.handleSubmit}>
+          <p>
+            <strong>Post to Server:</strong>
+          </p>
+          <input
+            type="text"
+            value={this.state.post}
+            onChange={e => this.setState({ post: e.target.value })}
+          />
+          <button type="submit">Submit</button>
+        </form>
+        <p>{this.state.responseToPost}</p>
       </div>
     );
   }
